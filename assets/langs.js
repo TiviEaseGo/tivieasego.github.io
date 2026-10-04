@@ -132,8 +132,8 @@
    uygulama ekran görüntülerinden oluşan kayan slayt bandına çevirir
    (assets/screens/; ph:1 = telefon ekranı → tv-slide--phone sınıfı).
    rAF ile sürekli sola kayar (SPEED px/sn); set bir kez çiftlenir,
-   bir set genişliği kadar kayınca başa sarar (kesintisiz döngü). */
-   .tv-frame kenarları gradient maske ile söner (style.css).
+   bir set genişliği kadar kayınca başa sarar (kesintisiz döngü).
+   .tv-frame kenarları gradient maske ile söner (style.css). */
 (function () {
   var body = document.querySelector('.tv-frame .tv-body');
   if (!body) return;
