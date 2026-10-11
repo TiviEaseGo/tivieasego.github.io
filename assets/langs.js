@@ -208,9 +208,10 @@
 
 /* TiviEase Go — indirme butonlarında sürüm rozeti
    .dl-apk, .dl-amazon ve .dl-win butonları releases/latest/download'a işaret ettiği
-   için GitHub API'den latest release'in tag'ini (v<x.y.z>) çekip buton
-   metinlerinin sağına (2 boşlukla) yazar. Fetch başarısızsa butonlar
-   değişmez. */
+   için GitHub API'den latest release'i çeker. Artefakt başına sürüm haritası
+   release body'sinde <!-- {"apk":"x.y.z","win":"x.y.z"} --> olarak durur —
+   hangisi güncellendiyse onun rozeti değişir. Harita yoksa (eski release)
+   tüm butonlarda tag gösterilir. Fetch başarısızsa butonlar değişmez. */
 (function () {
   var btns = document.querySelectorAll('.dl-btn.dl-apk, .dl-btn.dl-win, .dl-btn.dl-amazon');
   if (!btns.length || !window.fetch) return;
@@ -220,12 +221,19 @@
     .then(function (rel) {
       var tag = rel && rel.tag_name;
       if (!tag) return;
+      var map = null;
+      var m = rel.body && rel.body.match(/<!--\s*(\{[\s\S]*?\})\s*-->/);
+      if (m) { try { map = JSON.parse(m[1]); } catch (e) {} }
       Array.prototype.forEach.call(btns, function (btn) {
+        var key = btn.classList.contains('dl-win') ? 'win'
+                : (btn.classList.contains('dl-amazon') ? 'amazon' : 'apk');
+        var verText = map && map[key] ? 'v' + map[key] : (map ? null : tag);
+        if (!verText) return;
         // bitisik bosluklar white-space:normal'da teke duser - 2 karakter icin nbsp
         btn.appendChild(document.createTextNode('  '));
         var ver = document.createElement('span');
         ver.className = 'dl-ver';
-        ver.textContent = tag;
+        ver.textContent = verText;
         btn.appendChild(ver);
       });
     })
