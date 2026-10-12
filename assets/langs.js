@@ -43,15 +43,17 @@
   var m = file.match(/^(.+?)(?:\.([a-z]{2}))?\.html$/);
   var base = m ? m[1] : 'index';
   var cur  = (m && m[2]) || 'en';
+  var explicitLangPage = !!(m && m[2]);
 
   function hrefFor(code) {
     return code === 'en' ? base + '.html' : base + '.' + code + '.html';
   }
 
   // ── Hatırlanan dil seçimi ──
-  // Otomatik yönlendirme yalnızca kullanıcının daha önce seçtiği dile yapılır.
-  // Sistem diline göre yönlendirme yok: arama motoru botları sayfayı farklı
-  // locale ile açtığında kaynak URL'yi "redirect" olarak işaretleyebiliyor.
+  // Hatırlanan tercih yalnızca varsayılan İngilizce .html sayfasında uygulanır;
+  // index.tr.html gibi açık dil URL'leri doğrudan ve stabil kalır. Sistem
+  // diline göre yönlendirme yok: arama motoru botları sayfayı farklı locale
+  // ile açtığında kaynak URL'yi "redirect" olarak işaretleyebiliyor.
   var STORE_KEY = 'tiviease.lang';
   var known = function (c) {
     return LANGS.some(function (l) { return l.c === c; });
@@ -74,7 +76,7 @@
       })
       .catch(function () {});
   }
-  if (wanted && !/[?&]nolang\b/.test(location.search)) {
+  if (wanted && !explicitLangPage && !/[?&]nolang\b/.test(location.search)) {
     tryRedirect(wanted, wanted !== 'en');
   }
 
