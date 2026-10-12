@@ -1,4 +1,4 @@
-/* TiviEase Go — hesap sayfası mantığı (hesap.html / hesap.en.html)
+/* TiviEase Go — hesap sayfası mantığı (hesap.html / hesap.tr.html)
    auth.js'nin yüklediği Firebase Auth oturumunu kullanır.
    Lisans/cihaz verisi Firestore REST ile, cihaz kaldırma callable
    fonksiyonu REST ile çağrılır (ayrı Firestore/Functions SDK'si yok). */

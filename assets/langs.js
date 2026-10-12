@@ -1,6 +1,6 @@
 /* TiviEase Go — site dil seçici
-   Dosya adı kuralı: <sayfa>.html (Türkçe) | <sayfa>.<dil>.html (diğerleri)
-   Örn: index.en.html, yardim.de.html */
+   Dosya adı kuralı: <sayfa>.html (İngilizce) | <sayfa>.tr.html (Türkçe)
+   veya <sayfa>.<dil>.html (diğerleri). Örn: index.tr.html, yardim.de.html */
 (function () {
   var LANGS = [
     { c: 'tr', n: 'Türkçe',          f: '🇹🇷' },
@@ -42,31 +42,23 @@
   var file = location.pathname.split('/').pop() || 'index.html';
   var m = file.match(/^(.+?)(?:\.([a-z]{2}))?\.html$/);
   var base = m ? m[1] : 'index';
-  var cur  = (m && m[2]) || 'tr';
+  var cur  = (m && m[2]) || 'en';
 
   function hrefFor(code) {
-    return code === 'tr' ? base + '.html' : base + '.' + code + '.html';
+    return code === 'en' ? base + '.html' : base + '.' + code + '.html';
   }
 
-  // ── Otomatik dil: hatırlanan seçim > sistem dili ──
-  // Sistem diline ait dosya varsa o sayfaya yönlendir; çevirisi yoksa
-  // mevcut sayfada kal. Test/geliştirme için ?nolang atlatır.
+  // ── Hatırlanan dil seçimi ──
+  // Otomatik yönlendirme yalnızca kullanıcının daha önce seçtiği dile yapılır.
+  // Sistem diline göre yönlendirme yok: arama motoru botları sayfayı farklı
+  // locale ile açtığında kaynak URL'yi "redirect" olarak işaretleyebiliyor.
   var STORE_KEY = 'tiviease.lang';
   var known = function (c) {
     return LANGS.some(function (l) { return l.c === c; });
   };
   var wanted = null;
   try { wanted = localStorage.getItem(STORE_KEY); } catch (e) {}
-  if (!wanted || !known(wanted)) {
-    wanted = null;
-    var nav = navigator.languages || [navigator.language || ''];
-    for (var i = 0; i < nav.length && !wanted; i++) {
-      var b = (nav[i] || '').split(/[-_]/)[0].toLowerCase();
-      if (known(b)) wanted = b;
-    }
-    // Sistem dili listede yoksa varsayılan: İngilizce
-    if (!wanted) wanted = 'en';
-  }
+  if (!known(wanted)) wanted = null;
   // Hedef dosya yoksa İngilizce'ye düş (ör. zh listede var ama
   // çevirisi henüz eklenmemişse); İngilizce de yoksa mevcut sayfada kal.
   function tryRedirect(code, fallbackToEn) {

@@ -26,10 +26,10 @@
   var SDK_BASE = 'https://www.gstatic.com/firebasejs/' + SDK_VER + '/';
   var CACHE_KEY = 'tiviease.webuser';
 
-  /* ── Dil: dosya adından (<sayfa>.<dil>.html) — hesap sayfası tr/en ── */
+  /* ── Dil: dosya adından (<sayfa>.html=en, <sayfa>.tr.html=tr) ── */
   var file = location.pathname.split('/').pop() || 'index.html';
   var fm = file.match(/^(.+?)(?:\.([a-z]{2}))?\.html$/);
-  var LANG = (fm && fm[2]) || 'tr';
+  var LANG = (fm && fm[2]) || 'en';
 
   var STR = {
     tr: { login: 'Giriş Yap', account: 'Hesabım', logout: 'Çıkış Yap' },
@@ -60,7 +60,7 @@
   var t = STR[LANG] || STR.tr;
 
   function accountHref() {
-    return LANG === 'tr' ? 'hesap.html' : 'hesap.en.html';
+    return LANG === 'tr' ? 'hesap.tr.html' : 'hesap.html';
   }
 
   /* ── Firebase SDK'yi istendiğinde yükle (compat build'ler) ── */

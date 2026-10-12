@@ -31,7 +31,7 @@
 
   var file = location.pathname.split('/').pop() || 'satin-al.html';
   var fm = file.match(/^(.+?)(?:\.([a-z]{2}))?\.html$/);
-  var LANG = (fm && fm[2]) || 'tr';
+  var LANG = (fm && fm[2]) || 'en';
   if (LANG !== 'en') LANG = 'tr';
 
   var S = {
