@@ -200,28 +200,52 @@
   requestAnimationFrame(tick);
 })();
 
-/* TiviEase Go — indirme butonlarında sürüm rozeti
-   .dl-apk, .dl-amazon ve .dl-win butonları releases/latest/download'a işaret ettiği
-   için GitHub API'den latest release'i çeker. Artefakt başına sürüm haritası
-   release body'sinde <!-- {"apk":"x.y.z","win":"x.y.z"} --> olarak durur —
-   hangisi güncellendiyse onun rozeti değişir. Harita yoksa (eski release)
+/* TiviEase Go — indirme butonlarında sürüm rozeti + link çözümü
+   .dl-apk, .dl-amazon ve .dl-win butonları statik olarak
+   releases/latest/download'a işaret eder; ancak mpv-v* gibi yardımcı
+   release'ler en son yayınlandığında GitHub'ın "latest"i uygulama release'i
+   değil o yardımcı release olur — statik linkler 404'ler ve rozet yanlış
+   sürüm gösterirdi. Bu yüzden /releases/latest yerine liste taranır
+   (uygulamadaki UpdateCheckService._fetchLatestAppRelease mantığı):
+   öncelik body'sinde <!-- {"apk":"x.y.z","win":"x.y.z"} --> sürüm haritası
+   taşıyan en yeni release; yoksa semver tag'li ilk release (mpv-v1.1.7
+   gibi önekli tag'ler elenir). Çözülen release'in tag'iyle buton href'leri
+   releases/download/<tag>/ olarak düzeltilir. Harita yoksa (eski release)
    tüm butonlarda tag gösterilir. Fetch başarısızsa butonlar değişmez. */
 (function () {
   var btns = document.querySelectorAll('.dl-btn.dl-apk, .dl-btn.dl-win, .dl-btn.dl-amazon');
   if (!btns.length || !window.fetch) return;
 
-  fetch('https://api.github.com/repos/mechaniceng/tiviease-downloads/releases/latest')
+  fetch('https://api.github.com/repos/mechaniceng/tiviease-downloads/releases?per_page=15')
     .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (rel) {
-      var tag = rel && rel.tag_name;
-      if (!tag) return;
-      var map = null;
-      var m = rel.body && rel.body.match(/<!--\s*(\{[\s\S]*?\})\s*-->/);
-      if (m) { try { map = JSON.parse(m[1]); } catch (e) {} }
+    .then(function (list) {
+      if (!list || !list.length) return;
+      var mapRel = null, semverRel = null;
+      for (var i = 0; i < list.length; i++) {
+        var it = list[i];
+        if (!it || it.draft || it.prerelease) continue;
+        var tag = it.tag_name || '';
+        var map = null;
+        var m = it.body && it.body.match(/<!--\s*(\{[\s\S]*?\})\s*-->/);
+        if (m) { try { map = JSON.parse(m[1]); } catch (e) {} }
+        if (map && !mapRel) mapRel = { tag: tag, map: map };
+        if (!semverRel && /^v?\d+\.\d+(\.\d+)?$/.test(tag)) {
+          semverRel = { tag: tag, map: null };
+        }
+        if (mapRel && semverRel) break;
+      }
+      var sel = mapRel || semverRel;
+      if (!sel || !sel.tag) return;
       Array.prototype.forEach.call(btns, function (btn) {
+        // Statik 'latest' linki yardımcı release'e kaymış olabilir —
+        // çözülen uygulama release tag'ine çevir.
+        btn.href = btn.href.replace(
+          /\/releases\/latest\/download\//,
+          '/releases/download/' + sel.tag + '/'
+        );
         var key = btn.classList.contains('dl-win') ? 'win'
                 : (btn.classList.contains('dl-amazon') ? 'amazon' : 'apk');
-        var verText = map && map[key] ? 'v' + map[key] : (map ? null : tag);
+        var verText = sel.map && sel.map[key] ? 'v' + sel.map[key] : (sel.map ? null : sel.tag);
         if (!verText) return;
         // bitisik bosluklar white-space:normal'da teke duser - 2 karakter icin nbsp
         btn.appendChild(document.createTextNode('  '));
